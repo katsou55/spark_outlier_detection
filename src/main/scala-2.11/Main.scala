@@ -2,29 +2,25 @@
   * Created by carlosrodrigues on 23/01/2017.
   */
 
-
-import org.apache.spark.SparkContext
-import org.apache.spark.SparkConf
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.functions._
 
 import oulier.detection.univariate._
 
 
-
 object Main {
 
   def main(args: Array[String]) {
 
-    //Initialize SparkContext
-    val conf = new SparkConf().setAppName("OutlierDetection").setMaster("local[*]")
-    val sc = new SparkContext(conf)
-
-    //Initiazlize sparkSession from the previous configuration
+    //Initiazlize sparkSession as the unified context
     val spark = SparkSession
       .builder()
-      .config(conf)
+      .appName("OutlierDetection")
+      .master("local[*]")
       .getOrCreate()
+
+    spark.sparkContext.setLogLevel("WARN")
+
 
     import spark.implicits._
 
@@ -35,7 +31,7 @@ object Main {
     val filepath = "/Users/carlosrodrigues/Downloads/MHEALTHDATASET/mH*"
 
 
-    val allSignalsRDD = sc.wholeTextFiles(filepath).mapValues(_.split("\n"))
+    val allSignalsRDD = spark.sparkContext.wholeTextFiles(filepath).mapValues(_.split("\n"))
 
     def getSubjectNumber(s:String):String = {
       val pattern = "subject[0-9]*".r
@@ -60,16 +56,13 @@ object Main {
 
     println(s"The number of lines is: ${nlines}")
 
-    // Redundant
-    //import oulier.detection.univariate
-
     allSignalsDF.show(2)
 
     val outlier = Outlier(allSignalsDF, "ECG_1")
     outlier.predict(allSignalsDF).groupBy($"unvariate_prediction").agg(count($"unvariate_prediction")).show(5)
 
 
-    sc.stop()
+    spark.stop()
   }
 
   case class DeviceIoTData (acc_chest_x: Double,
