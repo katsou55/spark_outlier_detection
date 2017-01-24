@@ -6,6 +6,10 @@
 import org.apache.spark.SparkContext
 import org.apache.spark.SparkConf
 import org.apache.spark.sql.SparkSession
+import org.apache.spark.sql.functions._
+
+import oulier.detection.univariate._
+
 
 
 object Main {
@@ -56,6 +60,14 @@ object Main {
 
     println(s"The number of lines is: ${nlines}")
 
+    // Redundant
+    //import oulier.detection.univariate
+
+    allSignalsDF.show(2)
+
+    val outlier = Outlier(allSignalsDF, "ECG_1")
+    outlier.predict(allSignalsDF).groupBy($"unvariate_prediction").agg(count($"unvariate_prediction")).show(5)
+
 
     sc.stop()
   }
@@ -85,5 +97,6 @@ object Main {
                             mag_R_lowerArm_z: Double,
                             Label: Double,
                             ID: Double) extends Serializable
+
 }
 
