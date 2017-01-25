@@ -4,8 +4,7 @@
 
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.functions._
-
-import oulier.detection.univariate._
+import outlier.detection.univariate._
 
 
 object Main {
@@ -58,8 +57,9 @@ object Main {
 
     allSignalsDF.show(2)
 
-    val outlier = Outlier(allSignalsDF, "ECG_1")
-    outlier.predict(allSignalsDF).groupBy($"unvariate_prediction").agg(count($"unvariate_prediction")).show(5)
+    val outlier = Outlier(allSignalsDF, "ECG_1", 0)
+    //outlier.setOutputCol("hello") // How to set the output column name
+    outlier.predict(allSignalsDF).groupBy($"unvariate_prediction").agg(count($"unvariate_prediction") as "count").show(5)
 
 
     spark.stop()
