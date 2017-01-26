@@ -2,9 +2,10 @@
   * Created by carlosrodrigues on 23/01/2017.
   */
 
-import org.apache.spark.sql.SparkSession
+import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.apache.spark.sql.functions._
 import outlier.detection.univariate._
+import outlier.detection.multivariate._
 
 
 object Main {
@@ -57,9 +58,27 @@ object Main {
 
     allSignalsDF.show(2)
 
-    val outlier = Outlier(allSignalsDF, "ECG_1", 0)
+    /**
+      * Testing the unvariate methods
+      */
+    val outlier = Outlier(allSignalsDF, "ECG_1", 5)
     //outlier.setOutputCol("hello") // How to set the output column name
-    outlier.predict(allSignalsDF).groupBy($"unvariate_prediction").agg(count($"unvariate_prediction") as "count").show(5)
+    outlier.predict(allSignalsDF)
+              .groupBy($"unvariate_prediction")
+              .agg(count($"unvariate_prediction") as "count")
+              .show(5)
+
+    /**
+      * Testing the multivariate methods
+      */
+    val features = Array("Label", "ECG_1", "ECG_2", "ID", "acc_chest_x", "acc_chest_y", "acc_chest_z")
+    val multivariate = Cluster(featureCols = features)
+    val pred = multivariate.predict(allSignalsDF)
+    pred.show(5)
+
+
+    pred.groupBy("prediction").agg(count($"prediction")).show(11)
+
 
 
     spark.stop()

@@ -70,6 +70,7 @@ object Outlier extends Serializable {
         println("Threshold value Invalid, default value 3 was used.")
         3
     }
+
     val spark = data.sqlContext
     val stats = data.select (colName).describe()
 
